@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minecraft 3D Editor - Voxel Studio Multijugador</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Contenedor 3D Three.js -->
+  <div id="canvas-container"></div>
+
+  <!-- Header Superior -->
+  <header class="top-nav">
+    <div class="logo-area">
+      <div class="logo-cube"></div>
+      <div class="logo-title">
+        <h1>VOXELCRAFT <span>3D</span></h1>
+        <small class="version-tag">Multijugador Real-Time</small>
+      </div>
+    </div>
+
+    <!-- Estadísticas rápidas -->
+    <div class="stats-bar">
+      <div class="stat-pill" title="Total de cubos colocados">
+        <span class="icon">🧊</span>
+        <span id="cube-count">0</span> cubos
+      </div>
+      <div class="stat-pill" title="Clientes conectados actualmente">
+        <span class="pulse-indicator"></span>
+        <span id="online-count">1</span> en línea
+      </div>
+    </div>
+
+    <!-- Controles de Vista Rápida -->
+    <div class="view-controls">
+      <button class="btn btn-icon-text" id="btn-reset-cam" title="Restablecer posición de la cámara">
+        🔄 Reiniciar Cámara
+      </button>
+      <button class="btn btn-danger btn-sm" id="btn-clear-world" title="Limpiar todos los cubos">
+        🗑️ Vaciar Escena
+      </button>
+    </div>
+  </header>
+
+  <!-- Barra de Herramientas Principal (Izquierda) -->
+  <aside class="sidebar tools-panel">
+    <!-- Sección de Modo de Interacción -->
+    <div class="panel-section">
+      <label class="section-label">MODO DE CÁMARA</label>
+      <div class="mode-switch-group">
+        <button id="mode-build-cam" class="mode-btn active" title="Clic izquierdo: Construir/Borrar | Clic derecho: Rotar">
+          🔨 Construcción
+        </button>
+        <button id="mode-orbit-only" class="mode-btn" title="Clic izquierdo: Rotar / Inspeccionar cámara libremente">
+          👁️ Inspección
+        </button>
+      </div>
+    </div>
+
+    <!-- Sección de Herramientas de Edición -->
+    <div class="panel-section">
+      <label class="section-label">HERRAMIENTA ACTIVA</label>
+      <div class="tool-selector">
+        <button id="tool-place" class="tool-btn active" data-tool="place">
+          <span class="tool-icon">➕</span>
+          <div class="tool-info">
+            <span class="tool-name">Colocar Cubo</span>
+            <span class="tool-key">Tecla [1]</span>
+          </div>
+        </button>
+        <button id="tool-erase" class="tool-btn" data-tool="erase">
+          <span class="tool-icon">🧹</span>
+          <div class="tool-info">
+            <span class="tool-name">Pincel Borrador</span>
+            <span class="tool-key">Tecla [2]</span>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Selector de Color de Cubos -->
+    <div class="panel-section" id="color-section">
+      <label class="section-label">COLOR DEL CUBO</label>
+      <div class="color-picker-box">
+        <input type="color" id="cube-color-input" value="#2ecc71" title="Elegir color personalizado">
+        <div class="color-code-display">
+          <span class="color-preview" id="color-preview-sample" style="background-color: #2ecc71;"></span>
+          <input type="text" id="cube-color-hex" value="#2ecc71" maxlength="7">
+        </div>
+      </div>
+
+      <!-- Paleta Rápida Voxel / Minecraft -->
+      <label class="section-sublabel">Paleta rápida:</label>
+      <div class="palette-grid" id="palette-grid">
+        <button class="palette-swatch active" data-color="#2ecc71" style="background:#2ecc71" title="Pasto / Verde"></button>
+        <button class="palette-swatch" data-color="#795548" style="background:#795548" title="Tierra / Marrón"></button>
+        <button class="palette-swatch" data-color="#9e9e9e" style="background:#9e9e9e" title="Piedra / Gris"></button>
+        <button class="palette-swatch" data-color="#ffb300" style="background:#ffb300" title="Oro / Amarillo"></button>
+        <button class="palette-swatch" data-color="#00e5ff" style="background:#00e5ff" title="Diamante / Cian"></button>
+        <button class="palette-swatch" data-color="#e91e63" style="background:#e91e63" title="Rosa Vívido"></button>
+        <button class="palette-swatch" data-color="#e53935" style="background:#e53935" title="Redstone / Rojo"></button>
+        <button class="palette-swatch" data-color="#29b6f6" style="background:#29b6f6" title="Agua / Celeste"></button>
+        <button class="palette-swatch" data-color="#3f51b5" style="background:#3f51b5" title="Lapis / Azul"></button>
+        <button class="palette-swatch" data-color="#9c27b0" style="background:#9c27b0" title="Obsidiana / Morado"></button>
+        <button class="palette-swatch" data-color="#ffffff" style="background:#ffffff" title="Nieve / Blanco"></button>
+        <button class="palette-swatch" data-color="#212121" style="background:#212121" title="Carbón / Negro"></button>
+      </div>
+    </div>
+
+    <!-- Guía rápida de controles de ratón -->
+    <div class="panel-section controls-hint">
+      <label class="section-label">CONTROLES DE RATÓN</label>
+      <ul class="hint-list">
+        <li><strong>Clic Izq:</strong> Colocar / Borrar cubo</li>
+        <li><strong>Clic Der + Arrastre:</strong> Rotar cámara 360°</li>
+        <li><strong>Rueda / Scroll:</strong> Zoom Acercar / Alejar</li>
+        <li><strong>Clic Central / Shift+Der:</strong> Desplazar vista</li>
+      </ul>
+    </div>
+  </aside>
+
+  <!-- Panel Derecho: Presets y Multijugador -->
+  <aside class="sidebar presets-panel">
+    <!-- Pestañas de Navegación del Panel Derecho -->
+    <div class="panel-tabs">
+      <button class="tab-btn active" data-tab="tab-presets">📁 Presets Guardados</button>
+      <button class="tab-btn" data-tab="tab-players">
+        👥 Jugadores (<span id="tab-player-count">1</span>)
+      </button>
+    </div>
+
+    <!-- Contenido: Presets -->
+    <div class="tab-content active" id="tab-presets">
+      <div class="save-box">
+        <label class="section-label">GUARDAR COMPOSICIÓN</label>
+        <div class="save-input-row">
+          <input type="text" id="preset-name-input" placeholder="Nombre (ej: Castillo Voxel)" maxlength="30">
+          <button id="btn-save-preset" class="btn btn-primary" title="Guardar estado actual en el servidor">
+            💾 Guardar
+          </button>
+        </div>
+        <small class="input-tip">Se almacena en el servidor y se sincroniza automáticamente.</small>
+      </div>
+
+      <div class="presets-list-header">
+        <label class="section-label">COMPOSICIONES DISPONIBLES</label>
+        <button id="btn-refresh-presets" class="btn-icon" title="Refrescar lista">🔄</button>
+      </div>
+
+      <!-- Lista con scroll de presets indexados -->
+      <div class="presets-list" id="presets-list">
+        <div class="empty-state">Cargando presets del servidor...</div>
+      </div>
+    </div>
+
+    <!-- Contenido: Lista de Clientes Multijugador -->
+    <div class="tab-content" id="tab-players">
+      <div class="my-profile-box">
+        <label class="section-label">TU PERFIL</label>
+        <div class="my-name-row">
+          <span class="user-avatar-dot" id="my-avatar-dot"></span>
+          <input type="text" id="my-name-input" placeholder="Tu nombre" maxlength="20">
+          <button id="btn-update-name" class="btn btn-secondary btn-sm">Actualizar</button>
+        </div>
+      </div>
+
+      <label class="section-label" style="margin-top: 15px;">CLIENTES CONECTADOS EN TIEMPO REAL</label>
+      <div class="users-list" id="users-list">
+        <!-- Lista dinámica de clientes -->
+      </div>
+
+      <div class="multiplayer-info-box">
+        <p>💡 <em>¡Los bloques que coloques o borres se sincronizan instantáneamente con todos los jugadores conectados!</em></p>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Notificaciones Toast flotantes -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Scripts: Three.js, OrbitControls y Socket.io -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
+

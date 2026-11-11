@@ -1,0 +1,14 @@
+{
+  "name": "minecraft-3d-voxel-editor",
+  "version": "1.0.0",
+  "description": "Editor 3D tipo Minecraft multijugador con Three.js, Node.js y Socket.io",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5"
+  }
+}
+
